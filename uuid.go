@@ -32,6 +32,7 @@ import (
 	"database/sql/driver"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"hash"
 	"net"
@@ -264,9 +265,15 @@ func (u UUID) MarshalJSON() ([]byte, error) {
 	}
 }
 
-func (u *UUID) UnmarshalJSON(val interface{}) error {
+func (u *UUID) UnmarshalJSON(input []byte) error {
+	var val interface{}
+	if err := json.Unmarshal(input, &val); err != nil {
+		return err
+	}
+
 	if val == nil {
 		*u = Nil
+		return nil
 	}
 
 	if v, ok := val.(string); ok {

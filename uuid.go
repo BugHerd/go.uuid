@@ -32,6 +32,7 @@ import (
 	"database/sql/driver"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"hash"
 	"net"
@@ -190,6 +191,37 @@ func (u *UUID) SetVariant() {
 func (u UUID) MarshalText() (text []byte, err error) {
 	text = []byte(u.String())
 	return
+}
+
+func (u UUID) MarshalJSON() ([]byte, error) {
+	if u == (UUID{}) {
+		return []byte("null"), nil
+	} else {
+		return []byte(`"` + u.String() + `"`), nil
+	}
+}
+
+func (u *UUID) UnmarshalJSON(input []byte) error {
+	var val interface{}
+	if err := json.Unmarshal(input, &val); err != nil {
+		return err
+	}
+
+	if val == nil {
+		*u = UUID{}
+		return nil
+	}
+
+	if v, ok := val.(string); ok {
+		if n, err := FromString(v); err != nil {
+			return err
+		} else {
+			*u = n
+			return nil
+		}
+	}
+
+	return fmt.Errorf("invalid value for UnmarshalJson()")
 }
 
 func (u UUID) Value() (driver.Value, error) {

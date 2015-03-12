@@ -225,7 +225,11 @@ func (u *UUID) UnmarshalJSON(input []byte) error {
 }
 
 func (u UUID) Value() (driver.Value, error) {
-	return u.String(), nil
+	if u == (UUID{}) {
+		return nil, nil
+	} else {
+		return u.String(), nil
+	}
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.

@@ -292,6 +292,9 @@ func (u *UUID) UnmarshalBinary(data []byte) (err error) {
 // a longer byte slice or a string is handled by UnmarshalText.
 func (u *UUID) Scan(src interface{}) error {
 	switch src := src.(type) {
+	case UUID:
+		*u = src
+		return nil
 	case []byte:
 		if len(src) == 16 {
 			return u.UnmarshalBinary(src)

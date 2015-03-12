@@ -29,6 +29,7 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha1"
+	"database/sql/driver"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -189,6 +190,10 @@ func (u *UUID) SetVariant() {
 func (u UUID) MarshalText() (text []byte, err error) {
 	text = []byte(u.String())
 	return
+}
+
+func (u UUID) Value() (driver.Value, error) {
+	return u.String(), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.

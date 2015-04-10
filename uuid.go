@@ -39,6 +39,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"github.com/jackc/pgx"
 )
 
 // UUID layout variants.
@@ -306,6 +308,32 @@ func (u *UUID) Scan(src interface{}) error {
 	}
 
 	return fmt.Errorf("uuid: cannot convert %T to UUID", src)
+}
+
+func (u *UUID) Decode(vr *pgx.ValueReader) error {
+	if vr.Type().DataTypeName != "uuid" {
+		return fmt.Errorf("can't decode type %s", vr.Type().DataTypeName)
+	}
+
+	switch vr.Type().FormatCode {
+	case pgx.TextFormatCode:
+		return u.UnmarshalText(vr.ReadBytes(vr.Len()))
+	case pgx.BinaryFormatCode:
+		return u.UnmarshalBinary(vr.ReadBytes(vr.Len()))
+	}
+
+	return fmt.Errorf("can't decode value")
+}
+
+func (u UUID) Encode(w *pgx.WriteBuf, oid pgx.Oid) error {
+	w.WriteInt32(int32(len(u)))
+	w.WriteBytes(u.Bytes())
+
+	return nil
+}
+
+func (u UUID) FormatCode() int16 {
+	return pgx.BinaryFormatCode
 }
 
 // FromBytes returns UUID converted from raw byte slice input.
